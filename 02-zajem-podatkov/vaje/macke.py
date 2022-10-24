@@ -82,6 +82,9 @@ def page_to_ads(page_content):
                         r"(.*?)</article>", re.DOTALL)
     return re.findall(vzorec, page_content, re.findall)
 
+
+
+
 # Definirajte funkcijo, ki sprejme niz, ki predstavlja oglas, in izlušči
 # podatke o imenu, lokaciji, datumu objave in ceni v oglasu.
 
