@@ -8,7 +8,7 @@
  - : int = 4
 [*----------------------------------------------------------------------------*)
 
-let rec square = ()
+let rec square x = (x * x)
 
 (*----------------------------------------------------------------------------*]
  Funkcija [middle_of_triple] vrne srednji element trojice.
@@ -17,7 +17,7 @@ let rec square = ()
  - : bool = false
 [*----------------------------------------------------------------------------*)
 
-let rec middle_of_triple = ()
+let rec middle_of_triple (x, y, z) = y
 
 (*----------------------------------------------------------------------------*]
  Funkcija [starting_element] vrne prvi element danega seznama. V primeru
