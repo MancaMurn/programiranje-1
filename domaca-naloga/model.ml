@@ -149,4 +149,84 @@ let print_solution solution =
    -> v boxu so različne števke*)
 
 
-let is_valid_solution problem solution = failwith "TODO"
+let primer_resitve =  
+  [|
+    [|Some 2; Some 4; Some 5 ; Some 9; Some 8; Some 1; Some 3; Some 7; Some 6|];
+    [|Some 1; Some 6; Some 9; Some 2; Some 7; Some 3; Some 5; Some 8; Some 4|];
+    [|Some 8; Some 3; Some 7; Some 5; Some 6; Some 4; Some 2; Some 1; Some 9|];
+    [|Some 9; Some 7; Some 6; Some 1; Some 2; Some 5; Some 4; Some 3; Some 8|];
+    [|Some 5; Some 1; Some 3; Some 4; Some 2; Some 8; Some 6; Some 2; Some 7|];
+    [|Some 4; Some 8; Some 2; Some 7; Some 3; Some 6; Some 9; Some 5; Some 1|];
+    [|Some 3; Some 9; Some 1; Some 6; Some 5; Some 7; Some 8; Some 4; Some 2|];
+    [|Some 7; Some 2; Some 8; Some 3; Some 4; Some 9; Some 1; Some 6; Some 5|];
+    [|Some 6; Some 5; Some 4; Some 8; Some 1; Some 2; Some 7; Some 9; Some 3|];
+  |]
+
+let v_1 = [|Some 2; Some 4; Some 5 ; Some 9; Some 8; Some 1; Some 3; Some 7; Some 6|]
+let v_2 = [|Some 2; Some 4; None ; None; Some 8; Some 1; None; Some 7; Some 6|]
+let v_3 = [|Some 2; Some 5; Some 4 ; Some 9; Some 8; Some 1; Some 3; Some 7; Some 6|]
+
+let option_int_to_int cell =
+  match cell with
+  | Some x -> x
+  | None -> 0     
+    
+let option_array_to_int_array arr =
+  Array.map option_int_to_int arr
+
+(*funkcija, ki pri tabeli dolžine 9 (npr. vrsta v mreži) preveri, če vsebuje vse razpične števke od 1 do 9*)
+let valid_array arr1 =
+  let arr = option_array_to_int_array arr1 in 
+  let rec valid_arr n arr = 
+    match n with
+    | 0 -> true
+    | _ -> let f x = (n = x) in
+      (if (Array.exists f arr) = true then valid_arr (n - 1) arr else false) 
+    in
+    valid_arr 9 arr 
+
+  
+let rec valid_list_of_arrays = function
+| [] -> true
+| arr :: rest -> if valid_array arr = true then valid_list_of_arrays rest else false
+
+let valid_rows grid = 
+  let r = rows grid in
+    valid_list_of_arrays r
+
+let valid_columns grid = 
+  let c = columns grid in 
+    valid_list_of_arrays c
+
+let valid_boxes grid =
+  let b = boxes grid in 
+    valid_list_of_arrays b
+
+
+(*funkcija, ki preveri, če se vrstici ujemata torej, če se celice, ki niso prazne v nobeni od vrstic ujemajo*)
+let matching_arrays arr_p arr_s =
+  let rec match_arr arr_p arr_s n =
+    if n < 0 then true else
+    match arr_p.(n) with
+    | None -> match_arr arr_p arr_s (n - 1)
+    | Some x -> if arr_s.(n) = Some x then match_arr arr_p arr_s (n - 1) else false 
+  in
+  match_arr arr_p arr_s 8
+
+
+(* funkcija, ki preveri, če se grid za problem in grid za rešitev ujemata na nepraznih mestih.*)
+let solution_to_problem problem solution = 
+  let rec sol_to_prob problem solution n =
+    if n < 0 then true else
+      if matching_arrays problem.(n) solution.(n) = true 
+        then sol_to_prob problem solution (n - 1) 
+        else false 
+  in sol_to_prob problem solution 8
+
+
+
+let is_valid_solution problem solution = 
+  if solution_to_problem problem solution = false then false else
+    if valid_columns solution = false then false else
+      if valid_columns solution = false then false else
+        valid_boxes solution
