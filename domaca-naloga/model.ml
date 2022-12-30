@@ -2,6 +2,9 @@
 
 type 'a grid = 'a Array.t Array.t
 
+
+(*primer_mreže = [[][][][][][][][]]*)
+
 (* Funkcije za prikaz mreže.
    Te definiramo najprej, da si lahko z njimi pomagamo pri iskanju napak. *)
 
@@ -43,27 +46,43 @@ let print_grid string_of_cell grid =
 
 (* Funkcije za dostopanje do elementov mreže *)
 
-let get_row (grid : 'a grid) (row_ind : int) = failwith "TODO"
+let primer = 
+  [|
+    [|Some 2; None; None; None; Some 8; None; Some 3; None; None|];
+    [|None; Some 6; None; None; Some 7; None; None; Some 8; Some 4|];
+    [|None; Some 3; None; Some 5; None; None; Some 2; None; Some 9|];
+    [|None; None; None; Some 1; None; Some 5; Some 4; None; Some 8|];
+    [|None; None; None; None; None; None; None; None; None|];
+    [|Some 4; None; Some 2; Some 7; None; Some 6; None; None; None|];
+    [|Some 3; None; Some 1; None; None; Some 7; None; Some 4; None|];
+    [|Some 7; Some 2; None; None; Some 4; None; None; Some 6; None|];
+    [|None; None; Some 4; None; Some 1; None; None; None; Some 3|];
+  |]
 
-let rows grid = failwith "TODO"
+let get_row (grid : 'a grid) (row_ind : int) = 
+  grid.(row_ind)
+
+let rows grid = 
+  List.init 9 (get_row grid)
 
 let get_column (grid : 'a grid) (col_ind : int) =
   Array.init 9 (fun row_ind -> grid.(row_ind).(col_ind))
 
 let columns grid = List.init 9 (get_column grid)
 
-let get_box (grid : 'a grid) (box_ind : int) = failwith "TODO"
+let get_box (grid : 'a grid) (box_ind : int) = 
+  Array.init 9 (fun ind -> grid.(ind/3 + ((box_ind / 3) * 3)).((ind mod 3) + ((box_ind mod 3) * 3)))
 
-let boxes grid = failwith "TODO"
+let boxes grid = List.init 9 (get_box grid)
 
 (* Funkcije za ustvarjanje novih mrež *)
 
-let map_grid (f : 'a -> 'b) (grid : 'a grid) : 'b grid = failwith "TODO"
+let map_grid (f : 'a -> 'b) (grid : 'a grid) : 'b grid = 
+  Array.init 9 (fun ind -> (Array.map f grid.(ind)))
 
 let copy_grid (grid : 'a grid) : 'a grid = map_grid (fun x -> x) grid
 
-let foldi_grid (f : int -> int -> 'a -> 'acc -> 'acc) (grid : 'a grid)
-    (acc : 'acc) : 'acc =
+let foldi_grid (f : int -> int -> 'a -> 'acc -> 'acc) (grid : 'a grid) (acc : 'acc) : 'acc =
   let acc, _ =
     Array.fold_left
       (fun (acc, row_ind) row ->
@@ -97,7 +116,16 @@ let grid_of_string cell_of_char str =
 
 type problem = { initial_grid : int option grid }
 
-let print_problem problem : unit = failwith "TODO"
+(*Za prikaz sudokuja že imamo na voljo funkcijo print_grid, ki sprejme funkcijo a' -> string in grid*)
+
+let primer_problema = {initial_grid = primer}
+
+let cell_to_string = function
+| Some x -> string_of_int x
+| None -> " "
+
+let print_problem problem : unit =
+  print_grid cell_to_string problem.initial_grid
 
 let problem_of_string str =
   let cell_of_char = function
@@ -111,6 +139,14 @@ let problem_of_string str =
 
 type solution = int grid
 
-let print_solution solution = failwith "TODO"
+let print_solution solution = 
+  print_problem solution
+
+(*Za preverjanje pravilne rešitve potrebujemo preveriti:
+   -> rešitev ustreza problemu (torej da ima rešitev na mestih, ki v problemu niso prazna enake znake)
+   -> v vrstici so različne števke
+   -> v stolpcu so različne števke
+   -> v boxu so različne števke*)
+
 
 let is_valid_solution problem solution = failwith "TODO"
