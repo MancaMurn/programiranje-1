@@ -2,9 +2,6 @@
 
 type 'a grid = 'a Array.t Array.t
 
-
-(*primer_mreže = [[][][][][][][][]]*)
-
 (* Funkcije za prikaz mreže.
    Te definiramo najprej, da si lahko z njimi pomagamo pri iskanju napak. *)
 
@@ -74,6 +71,17 @@ let get_box (grid : 'a grid) (box_ind : int) =
   Array.init 9 (fun ind -> grid.(ind/3 + ((box_ind / 3) * 3)).((ind mod 3) + ((box_ind mod 3) * 3)))
 
 let boxes grid = List.init 9 (get_box grid)
+
+
+let find_box (i, j) = 
+  if 0 <= i && i <= 2 && 0 <= j && j <= 2 then 0 else
+    if 0 <= i && i <= 2 && 3 <= j && j <= 5 then 1 else
+      if 0 <= i && i <= 2 && 6 <= j && j <= 8 then 2 else
+        if 3 <= i && i <= 5 && 0 <= j && j <= 2 then 3 else
+          if 3 <= i && i <= 5 && 3 <= j && j <= 5 then 4 else
+            if 3 <= i && i <= 5 && 6 <= j && j <= 7 then 5 else
+              if 6 <= i && i <= 8 && 0 <= j && j <= 2 then 6 else
+                if 6 <= i && i <= 8 && 3 <= j && j <= 5 then 7 else 8
 
 (* Funkcije za ustvarjanje novih mrež *)
 
@@ -166,6 +174,7 @@ let v_1 = [|Some 2; Some 4; Some 5 ; Some 9; Some 8; Some 1; Some 3; Some 7; Som
 let v_2 = [|Some 2; Some 4; None ; None; Some 8; Some 1; None; Some 7; Some 6|]
 let v_3 = [|Some 2; Some 5; Some 4 ; Some 9; Some 8; Some 1; Some 3; Some 7; Some 6|]
 
+
 let option_int_to_int cell =
   match cell with
   | Some x -> x
@@ -174,6 +183,15 @@ let option_int_to_int cell =
 let option_array_to_int_array arr =
   Array.map option_int_to_int arr
 
+let find_int_in_array n array =
+  let arr = option_array_to_int_array array in 
+    let rec find_in_arr n arr ind =
+      match ind with
+      | 0 -> arr.(ind) = n
+      | _ -> if arr.(ind) = n then true else find_in_arr n arr (ind - 1) 
+    in
+    find_in_arr n arr 8
+  
 (*funkcija, ki pri tabeli dolžine 9 (npr. vrsta v mreži) preveri, če vsebuje vse razpične števke od 1 do 9*)
 let valid_array arr1 =
   let arr = option_array_to_int_array arr1 in 

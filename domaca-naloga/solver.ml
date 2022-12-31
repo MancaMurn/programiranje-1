@@ -2,7 +2,7 @@ type available = { loc : int * int; possible : int list }
 
 (* TODO: tip stanja ustrezno popravite, saj boste med reševanjem zaradi učinkovitosti
    želeli imeti še kakšno dodatno informacijo *)
-type state = { problem : Model.problem; current_grid : int option Model.grid }
+type state = { problem : Model.problem; current_grid : int option Model.grid; options : available list }
 
 let print_state (state : state) : unit =
   Model.print_grid
@@ -14,7 +14,7 @@ type response = Solved of Model.solution | Unsolved of state | Fail of state
 let initialize_state (problem : Model.problem) : state =
   { current_grid = Model.copy_grid problem.initial_grid; problem }
 
-let validate_state (state : state) : response =
+
   let unsolved =
     Array.exists (Array.exists Option.is_none) state.current_grid
   in
@@ -24,6 +24,27 @@ let validate_state (state : state) : response =
     let solution = Model.map_grid Option.get state.current_grid in
     if Model.is_valid_solution state.problem solution then Solved solution
     else Fail state
+
+
+  (* pomožna funkcija, ki bo za dano mrežo in polje v njej poiskala možnosti*)
+let find_options grid (i, j) =
+  let row = Model.get_row grid i in
+    let column = Model.get_column grid j in    
+      let box = Model.get_box grid (Model.find_box (i, j)) in
+        let rec find_options_aux row column box n acc =
+          match n with
+          | 0 ->  available = {loc = (row, column); possible = acc }
+          | _ -> if ((Model.find_int_in_array n row) = true || (Model.find_int_in_array n column) = true || (Model.find_int_in_array n box) = true )
+                  then find_options_aux row column box (n-1) (n :: acc) else
+                    find_options_aux row column box (n-1) acc
+        in
+        find_options_aux row column box 9 [] 
+
+let primer = Model.primer
+
+
+
+
 
 let branch_state (state : state) : (state * state) option =
   (* TODO: Pripravite funkcijo, ki v trenutnem stanju poišče hipotezo, glede katere
