@@ -14,7 +14,7 @@ type response = Solved of Model.solution | Unsolved of state | Fail of state
 let initialize_state (problem : Model.problem) : state =
   { current_grid = Model.copy_grid problem.initial_grid; problem }
 
-
+let validate_state (state : state) : response =
   let unsolved =
     Array.exists (Array.exists Option.is_none) state.current_grid
   in
@@ -35,24 +35,50 @@ let find_options grid (i, j) =
           match n with
           | 0 ->  available = {loc = (row, column); possible = acc }
           | _ -> if ((Model.find_int_in_array n row) = true || (Model.find_int_in_array n column) = true || (Model.find_int_in_array n box) = true )
-                  then find_options_aux row column box (n-1) (n :: acc) else
-                    find_options_aux row column box (n-1) acc
+                  then find_options_aux row column box (n-1) acc else
+                    find_options_aux row column box (n-1) (n :: acc)
         in
         find_options_aux row column box 9 [] 
 
 let primer = Model.primer
 
+let rec find_n_options n available_list =
+  match available_list with
+  | [] -> None
+  | available :: xs -> if (List.length available.possible ) = n then available else
+    find_n_options xs
 
 
+let fill_cell grid (i, j) n =
+  grid.(i).(j) <- Some n 
 
+let remove_from_avaliable_list available_list (i, j) =
+  let rec remove_aux available_list (i, j) acc =
+  match available_list with
+  | [] -> acc
+  | {cell, list} :: rest -> if cell = (i, j) then acc else remove_aux rest (i, j) ({cell, list} :: acc)
 
-let branch_state (state : state) : (state * state) option =
-  (* TODO: Pripravite funkcijo, ki v trenutnem stanju poišče hipotezo, glede katere
+  
+(* TODO: Pripravite funkcijo, ki v trenutnem stanju poišče hipotezo, glede katere
      se je treba odločiti. Če ta obstaja, stanje razveji na dve stanji:
      v prvem predpostavi, da hipoteza velja, v drugem pa ravno obratno.
      Če bo vaš algoritem najprej poizkusil prvo možnost, vam morda pri drugi
      za začetek ni treba zapravljati preveč časa, saj ne bo nujno prišla v poštev. *)
-  failwith "TODO"
+let branch_state (state : state) : (state * state) option =
+  let available = find_n_options 2 state.options in 
+  match available with
+  | None -> None
+  (* xs = [], saj smo zgoraj našli celico, ki ji pripada ta seznam dolžine dva.*)
+  | {(i, j), x :: y :: xs} -> 
+    let st_1 = {state.problem, fill_cell state.current_grid (i, j) x , remove_from_avaliable_list state.possible (i, j)} 
+    in
+    let st_2 = {state.problem, fill_cell state.current_grid (i, j) y , remove_from_avaliable_list state.possible (i, j)} 
+    in
+    (st_1, st_2) 
+
+  
+  
+
 
 (* pogledamo, če trenutno stanje vodi do rešitve *)
 let rec solve_state (state : state) =
