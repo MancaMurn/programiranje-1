@@ -11,9 +11,6 @@ let print_state (state : state) : unit =
 
 type response = Solved of Model.solution | Unsolved of state | Fail of state
 
-let initialize_state (problem : Model.problem) : state =
-  { current_grid = Model.copy_grid problem.initial_grid; problem }
-
 let validate_state (state : state) : response =
   let unsolved =
     Array.exists (Array.exists Option.is_none) state.current_grid
@@ -40,6 +37,19 @@ let find_options grid (i, j) =
         in
         find_options_aux row column box 9 [] 
 
+let make_avalible_list grid =
+  let rec make_avalible grid (i, j) acc =
+    match (i, j) with 
+    | (0, 0) -> if Model.is_empty_cell grid (i, j) = True then (find_options grid (i, j)) :: acc else acc
+    | (_, 0) -> if Model.is_empty_cell grid (i, j) = True then make_avalible grid (i-1, 8) (find_options grid (i, j)) :: acc else
+        make_avalible grid (i-1, 8) acc
+    | (_, _) -> if Model.is_empty_cell grid (i, j) = True then make_avalible grid (i, j-1) (find_options grid (i, j)) :: acc else
+        make_avalible grid (i, j-1) acc
+
+let initialize_state (problem : Model.problem) : state =
+  { current_grid = Model.copy_grid problem.initial_grid; problem; make_avalible_list current_grid }
+        
+
 let primer = Model.primer
 
 let rec find_n_options n available_list =
@@ -56,7 +66,7 @@ let remove_from_avaliable_list available_list (i, j) =
   let rec remove_aux available_list (i, j) acc =
   match available_list with
   | [] -> acc
-  | {cell, list} :: rest -> if cell = (i, j) then acc else remove_aux rest (i, j) ({cell, list} :: acc)
+  | {cell; list} :: rest -> if cell = (i, j) then acc else remove_aux rest (i, j) ({cell; list} :: acc)
 
   
 (* TODO: Pripravite funkcijo, ki v trenutnem stanju poišče hipotezo, glede katere

@@ -41,20 +41,8 @@ let print_grid string_of_cell grid =
   Printf.printf "%s" row_blocks;
   Printf.printf "┗%s┷%s┷%s┛\n" big big big
 
-(* Funkcije za dostopanje do elementov mreže *)
 
-let primer = 
-  [|
-    [|Some 2; None; None; None; Some 8; None; Some 3; None; None|];
-    [|None; Some 6; None; None; Some 7; None; None; Some 8; Some 4|];
-    [|None; Some 3; None; Some 5; None; None; Some 2; None; Some 9|];
-    [|None; None; None; Some 1; None; Some 5; Some 4; None; Some 8|];
-    [|None; None; None; None; None; None; None; None; None|];
-    [|Some 4; None; Some 2; Some 7; None; Some 6; None; None; None|];
-    [|Some 3; None; Some 1; None; None; Some 7; None; Some 4; None|];
-    [|Some 7; Some 2; None; None; Some 4; None; None; Some 6; None|];
-    [|None; None; Some 4; None; Some 1; None; None; None; Some 3|];
-  |]
+(* Funkcije za dostopanje do elementov mreže *)
 
 let get_row (grid : 'a grid) (row_ind : int) = 
   grid.(row_ind)
@@ -72,7 +60,7 @@ let get_box (grid : 'a grid) (box_ind : int) =
 
 let boxes grid = List.init 9 (get_box grid)
 
-
+(*Funkcija, ki za dano polje v mreži vrne številko boxa, v katerem leži.*)
 let find_box (i, j) = 
   if 0 <= i && i <= 2 && 0 <= j && j <= 2 then 0 else
     if 0 <= i && i <= 2 && 3 <= j && j <= 5 then 1 else
@@ -82,6 +70,7 @@ let find_box (i, j) =
             if 3 <= i && i <= 5 && 6 <= j && j <= 7 then 5 else
               if 6 <= i && i <= 8 && 0 <= j && j <= 2 then 6 else
                 if 6 <= i && i <= 8 && 3 <= j && j <= 5 then 7 else 8
+
 
 (* Funkcije za ustvarjanje novih mrež *)
 
@@ -120,13 +109,11 @@ let grid_of_string cell_of_char str =
     failwith "Nepravilno število stolpcev";
   grid
 
+
+
 (* Model za vhodne probleme *)
 
 type problem = { initial_grid : int option grid }
-
-(*Za prikaz sudokuja že imamo na voljo funkcijo print_grid, ki sprejme funkcijo a' -> string in grid*)
-
-let primer_problema = {initial_grid = primer}
 
 let cell_to_string = function
 | Some x -> string_of_int x
@@ -143,37 +130,20 @@ let problem_of_string str =
   in
   { initial_grid = grid_of_string cell_of_char str }
 
+
 (* Model za izhodne rešitve *)
 
 type solution = int grid
 
 let print_solution solution = 
-  print_problem solution
+  print_grid string_of_int solution
+
 
 (*Za preverjanje pravilne rešitve potrebujemo preveriti:
    -> rešitev ustreza problemu (torej da ima rešitev na mestih, ki v problemu niso prazna enake znake)
    -> v vrstici so različne števke
    -> v stolpcu so različne števke
    -> v boxu so različne števke*)
-
-
-let primer_resitve =  
-  [|
-    [|Some 2; Some 4; Some 5 ; Some 9; Some 8; Some 1; Some 3; Some 7; Some 6|];
-    [|Some 1; Some 6; Some 9; Some 2; Some 7; Some 3; Some 5; Some 8; Some 4|];
-    [|Some 8; Some 3; Some 7; Some 5; Some 6; Some 4; Some 2; Some 1; Some 9|];
-    [|Some 9; Some 7; Some 6; Some 1; Some 2; Some 5; Some 4; Some 3; Some 8|];
-    [|Some 5; Some 1; Some 3; Some 4; Some 2; Some 8; Some 6; Some 2; Some 7|];
-    [|Some 4; Some 8; Some 2; Some 7; Some 3; Some 6; Some 9; Some 5; Some 1|];
-    [|Some 3; Some 9; Some 1; Some 6; Some 5; Some 7; Some 8; Some 4; Some 2|];
-    [|Some 7; Some 2; Some 8; Some 3; Some 4; Some 9; Some 1; Some 6; Some 5|];
-    [|Some 6; Some 5; Some 4; Some 8; Some 1; Some 2; Some 7; Some 9; Some 3|];
-  |]
-
-let v_1 = [|Some 2; Some 4; Some 5 ; Some 9; Some 8; Some 1; Some 3; Some 7; Some 6|]
-let v_2 = [|Some 2; Some 4; None ; None; Some 8; Some 1; None; Some 7; Some 6|]
-let v_3 = [|Some 2; Some 5; Some 4 ; Some 9; Some 8; Some 1; Some 3; Some 7; Some 6|]
-
 
 let option_int_to_int cell =
   match cell with
@@ -191,10 +161,13 @@ let find_int_in_array n array =
       | _ -> if arr.(ind) = n then true else find_in_arr n arr (ind - 1) 
     in
     find_in_arr n arr 8
-  
-(*funkcija, ki pri tabeli dolžine 9 (npr. vrsta v mreži) preveri, če vsebuje vse razpične števke od 1 do 9*)
-let valid_array arr1 =
-  let arr = option_array_to_int_array arr1 in 
+
+let is_empty_cell grid (i, j) =
+  grid.(i).(j) = None
+
+
+(*funkcija, ki pri tabeli dolžine 9 (npr. vrsta v mreži) preveri, če vsebuje vse različne števke od 1 do 9*)
+let valid_array arr = 
   let rec valid_arr n arr = 
     match n with
     | 0 -> true
@@ -202,7 +175,6 @@ let valid_array arr1 =
       (if (Array.exists f arr) = true then valid_arr (n - 1) arr else false) 
     in
     valid_arr 9 arr 
-
   
 let rec valid_list_of_arrays = function
 | [] -> true
@@ -227,7 +199,7 @@ let matching_arrays arr_p arr_s =
     if n < 0 then true else
     match arr_p.(n) with
     | None -> match_arr arr_p arr_s (n - 1)
-    | Some x -> if arr_s.(n) = Some x then match_arr arr_p arr_s (n - 1) else false 
+    | Some x -> if arr_s.(n) = Option.get arr_p.(n) then match_arr arr_p arr_s (n - 1) else false 
   in
   match_arr arr_p arr_s 8
 
@@ -244,7 +216,40 @@ let solution_to_problem problem solution =
 
 
 let is_valid_solution problem solution = 
-  if solution_to_problem problem solution = false then false else
-    if valid_columns solution = false then false else
+  let  problem_grid = problem.initial_grid in 
+    if solution_to_problem problem_grid solution = false then false else
       if valid_columns solution = false then false else
-        valid_boxes solution
+        if valid_columns solution = false then false else
+          valid_boxes solution
+
+
+let primer = 
+  [|
+    [|Some 2; None; None; None; Some 8; None; Some 3; None; None|];
+    [|None; Some 6; None; None; Some 7; None; None; Some 8; Some 4|];
+    [|None; Some 3; None; Some 5; None; None; Some 2; None; Some 9|]; 
+    [|None; None; None; Some 1; None; Some 5; Some 4; None; Some 8|];
+    [|None; None; None; None; None; None; None; None; None|];
+    [|Some 4; None; Some 2; Some 7; None; Some 6; None; None; None|];
+    [|Some 3; None; Some 1; None; None; Some 7; None; Some 4; None|];
+    [|Some 7; Some 2; None; None; Some 4; None; None; Some 6; None|];
+    [|None; None; Some 4; None; Some 1; None; None; None; Some 3|];
+  |]
+let primer_resitve =  
+  [|
+    [| 2;  4;  5;  9;  8;  1;  3;  7;  6|];
+    [| 1;  6;  9;  2;  7;  3;  5;  8;  4|];
+    [| 8;  3;  7;  5;  6;  4;  2;  1;  9|];
+    [| 9;  7;  6;  1;  2;  5;  4;  3;  8|];
+    [| 5;  1;  3;  4;  2;  8;  6;  2;  7|];
+    [| 4;  8;  2;  7;  3;  6;  9;  5;  1|];
+    [| 3;  9;  1;  6;  5;  7;  8;  4;  2|];
+    [| 7;  2;  8;  3;  4;  9;  1;  6;  5|];
+    [| 6;  5;  4;  8;  1;  2;  7;  9;  3|];
+  |]
+
+let primer_problema = {initial_grid = primer}
+              
+let v_1 = [|Some 2; Some 4; Some 5 ; Some 9; Some 8; Some 1; Some 3; Some 7; Some 6|]
+let v_2 = [|Some 2; Some 4; None ; None; Some 8; Some 1; None; Some 7; Some 6|]
+let v_3 = [|Some 2; Some 5; Some 4 ; Some 9; Some 8; Some 1; Some 3; Some 7; Some 6|]
