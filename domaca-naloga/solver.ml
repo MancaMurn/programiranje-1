@@ -119,7 +119,7 @@ let branch_state (state : state) : (state * state) option =
       let st_2 = {problem = state.problem; 
                 current_grid = return_filled_grid state.current_grid available.loc y; 
                 options = remove_from_avaliable_list state.options available.loc} 
-      in (st_1, st_2) 
+      in Some (st_1, st_2) 
   | [] -> None
   | x :: xs -> None
   
@@ -141,7 +141,7 @@ let rec solve_state (state : state) =
       (* če še nismo končali, raziščemo stanje, v katerem smo končali *)
       explore_state state'
 
-      
+
 and explore_state (state : state) =
   (* pri raziskovanju najprej pogledamo, ali lahko trenutno stanje razvejimo *)
   match branch_state state with
