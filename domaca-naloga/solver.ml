@@ -36,7 +36,7 @@ let find_options grid (i, j) =
           | 0 -> {loc = (i, j); possible = acc }
           | _ -> if ((Model.find_int_in_array n row) = true || (Model.find_int_in_array n column) = true || (Model.find_int_in_array n box) = true )
                   then find_options_aux (i, j) row column box (n-1) acc else
-                    find_options_aux (i, j)row column box (n-1) (n :: acc)
+                    find_options_aux (i, j) row column box (n-1) (n :: acc)
         in
         find_options_aux (i, j) r c b 8 [] 
 
@@ -75,7 +75,7 @@ let fill_cell grid (i, j) n =
   grid.(i).(j) <- Some n 
 
 let return_filled_grid grid (i, j) n =
-  let u = fill_cell grid (i, j) n in 
+  fill_cell grid (i, j) n; 
   Model.copy_grid grid
 
 
@@ -88,6 +88,7 @@ let remove_from_avaliable_list available_list (i, j) =
   remove_aux available_list (i, j) []
 
 
+(*funkcija, ki bo zapolnila vse celice, kjer imamo že na začetku samo eno možnost.*)
 let fill_simple_cells (state : state) : state = 
   let sipmle_cells = find_all_n_options 1 state.options in 
     let rec fill state sipmle_cells = 
@@ -97,7 +98,7 @@ let fill_simple_cells (state : state) : state =
           | [] -> fill state rest
           | x :: xs -> fill {problem = state.problem; 
                             current_grid = (return_filled_grid state.current_grid loc x); 
-                            options = state.options } 
+                            options = remove_from_avaliable_list state.options loc } 
                             rest 
     in 
     fill state sipmle_cells  
@@ -110,7 +111,7 @@ let fill_simple_cells (state : state) : state =
 let branch_state (state : state) : (state * state) option =
   let available = find_first_n_options 2 state.options in 
   match available.possible with
-  (* xs = [], saj smo zgoraj našli celico, ki ji pripada ta seznam dolžine dva.*)
+  (* xs = [], saj smo zgoraj našli celico, ki ji pripada seznam dolžine dva.*)
   | x :: y :: xs -> 
     let st_1 = {problem = state.problem; 
               current_grid = return_filled_grid state.current_grid available.loc x; 
@@ -159,4 +160,4 @@ and explore_state (state : state) =
           solve_state st2 )
 
 let solve_problem (problem : Model.problem) =
-  problem |> initialize_state |> solve_state
+  problem |> initialize_state |> fill_simple_cells |> solve_state
