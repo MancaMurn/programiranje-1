@@ -4,12 +4,15 @@ type available = { loc : int * int; possible : int list }
    želeli imeti še kakšno dodatno informacijo *)
 type state = { problem : Model.problem; current_grid : int option Model.grid; options : available list }
 
+
 let print_state (state : state) : unit =
   Model.print_grid
     (function None -> "?" | Some digit -> string_of_int digit)
     state.current_grid
 
+
 type response = Solved of Model.solution | Unsolved of state | Fail of state
+
 
 let validate_state (state : state) : response =
   let unsolved =
@@ -23,50 +26,55 @@ let validate_state (state : state) : response =
     else Fail state
 
 
-  (* pomožna funkcija, ki bo za dano mrežo in polje v njej poiskala možnosti*)
+(* pomožna funkcija, ki bo za dano mrežo in polje v njej poiskala možnosti*)
 let find_options grid (i, j) =
-  let row = Model.get_row grid i in
-    let column = Model.get_column grid j in    
-      let box = Model.get_box grid (Model.find_box (i, j)) in
-        let rec find_options_aux row column box n acc =
+  let r = Model.get_row grid i in
+    let c = Model.get_column grid j in    
+      let b = Model.get_box grid (Model.find_box (i, j)) in
+        let rec find_options_aux (i, j) row column box n acc =
           match n with
-          | 0 ->  available = {loc = (row, column); possible = acc }
+          | 0 -> {loc = (i, j); possible = acc }
           | _ -> if ((Model.find_int_in_array n row) = true || (Model.find_int_in_array n column) = true || (Model.find_int_in_array n box) = true )
-                  then find_options_aux row column box (n-1) acc else
-                    find_options_aux row column box (n-1) (n :: acc)
+                  then find_options_aux (i, j) row column box (n-1) acc else
+                    find_options_aux (i, j)row column box (n-1) (n :: acc)
         in
-        find_options_aux row column box 9 [] 
+        find_options_aux (i, j) r c b 8 [] 
+
 
 let make_avalible_list grid =
-  let rec make_avalible grid (i, j) acc =
+  let rec make_avalible_list_aux grid (i, j) acc =
     match (i, j) with 
-    | (0, 0) -> if Model.is_empty_cell grid (i, j) = True then (find_options grid (i, j)) :: acc else acc
-    | (_, 0) -> if Model.is_empty_cell grid (i, j) = True then make_avalible grid (i-1, 8) (find_options grid (i, j)) :: acc else
-        make_avalible grid (i-1, 8) acc
-    | (_, _) -> if Model.is_empty_cell grid (i, j) = True then make_avalible grid (i, j-1) (find_options grid (i, j)) :: acc else
-        make_avalible grid (i, j-1) acc
+    | (0, 0) -> if Model.is_empty_cell grid (i, j) = true then (find_options grid (i, j)) :: acc else acc
+    | (_, 0) -> if Model.is_empty_cell grid (i, j) = true then make_avalible_list_aux grid (i-1, 8) ((find_options grid (i, j)) :: acc) else
+        make_avalible_list_aux grid (i-1, 8) acc
+    | (_, _) -> if Model.is_empty_cell grid (i, j) = true then make_avalible_list_aux grid (i, j-1) ((find_options grid (i, j)) :: acc) else
+        make_avalible_list_aux grid (i, j-1) acc
+    in 
+    make_avalible_list_aux grid (8, 8) []
+
 
 let initialize_state (problem : Model.problem) : state =
-  { current_grid = Model.copy_grid problem.initial_grid; problem; make_avalible_list current_grid }
-        
+  { problem = problem; current_grid = Model.copy_grid problem.initial_grid; options = make_avalible_list problem.initial_grid }
 
-let primer = Model.primer
 
 let rec find_n_options n available_list =
   match available_list with
-  | [] -> None
+  | [] -> failwith "No cell has that many options."
   | available :: xs -> if (List.length available.possible ) = n then available else
-    find_n_options xs
+    find_n_options n xs 
 
 
 let fill_cell grid (i, j) n =
   grid.(i).(j) <- Some n 
 
+
 let remove_from_avaliable_list available_list (i, j) =
   let rec remove_aux available_list (i, j) acc =
   match available_list with
   | [] -> acc
-  | {cell; list} :: rest -> if cell = (i, j) then acc else remove_aux rest (i, j) ({cell; list} :: acc)
+  | available :: rest -> if available.loc = (i, j) then acc else remove_aux rest (i, j) (available :: acc) 
+  in
+  remove_aux available_list (i, j) []
 
   
 (* TODO: Pripravite funkcijo, ki v trenutnem stanju poišče hipotezo, glede katere
