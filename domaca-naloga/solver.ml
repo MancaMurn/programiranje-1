@@ -57,15 +57,26 @@ let initialize_state (problem : Model.problem) : state =
   { problem = problem; current_grid = Model.copy_grid problem.initial_grid; options = make_avalible_list problem.initial_grid }
 
 
-let rec find_n_options n available_list =
+let rec find_first_n_options n available_list =
   match available_list with
   | [] -> failwith "No cell has that many options."
   | available :: xs -> if (List.length available.possible ) = n then available else
-    find_n_options n xs 
+    find_first_n_options n xs 
 
+let find_all_n_options n available_list =
+  let rec find_all n acc = function 
+  | [] -> acc
+  | available :: rest -> if List.length available.possible = n then find_all n (available :: acc) rest else
+      find_all n acc rest 
+  in
+  find_all n [] available_list 
 
 let fill_cell grid (i, j) n =
   grid.(i).(j) <- Some n 
+
+let return_filled_grid grid (i, j) n =
+  let u = fill_cell grid (i, j) n in 
+  Model.copy_grid grid
 
 
 let remove_from_avaliable_list available_list (i, j) =
@@ -76,24 +87,41 @@ let remove_from_avaliable_list available_list (i, j) =
   in
   remove_aux available_list (i, j) []
 
-  
+
+let fill_simple_cells (state : state) : state = 
+  let sipmle_cells = find_all_n_options 1 state.options in 
+    let rec fill state sipmle_cells = 
+      match sipmle_cells with
+      | [] -> {problem = state.problem; current_grid = state.current_grid; options = state.options }
+      | {loc; possible} :: rest -> match possible with
+          | [] -> fill state rest
+          | x :: xs -> fill {problem = state.problem; 
+                            current_grid = (return_filled_grid state.current_grid loc x); 
+                            options = state.options } 
+                            rest 
+    in 
+    fill state sipmle_cells  
+
 (* TODO: Pripravite funkcijo, ki v trenutnem stanju poišče hipotezo, glede katere
      se je treba odločiti. Če ta obstaja, stanje razveji na dve stanji:
      v prvem predpostavi, da hipoteza velja, v drugem pa ravno obratno.
      Če bo vaš algoritem najprej poizkusil prvo možnost, vam morda pri drugi
      za začetek ni treba zapravljati preveč časa, saj ne bo nujno prišla v poštev. *)
 let branch_state (state : state) : (state * state) option =
-  let available = find_n_options 2 state.options in 
-  match available with
-  | None -> None
+  let available = find_first_n_options 2 state.options in 
+  match available.possible with
   (* xs = [], saj smo zgoraj našli celico, ki ji pripada ta seznam dolžine dva.*)
-  | {(i, j), x :: y :: xs} -> 
-    let st_1 = {state.problem, fill_cell state.current_grid (i, j) x , remove_from_avaliable_list state.possible (i, j)} 
+  | x :: y :: xs -> 
+    let st_1 = {problem = state.problem; 
+              current_grid = return_filled_grid state.current_grid available.loc x; 
+              options = remove_from_avaliable_list state.options available.loc} 
     in
-    let st_2 = {state.problem, fill_cell state.current_grid (i, j) y , remove_from_avaliable_list state.possible (i, j)} 
-    in
-    (st_1, st_2) 
-
+      let st_2 = {problem = state.problem; 
+                current_grid = return_filled_grid state.current_grid available.loc y; 
+                options = remove_from_avaliable_list state.options available.loc} 
+      in (st_1, st_2) 
+  | [] -> None
+  | x :: xs -> None
   
   
 
@@ -113,6 +141,7 @@ let rec solve_state (state : state) =
       (* če še nismo končali, raziščemo stanje, v katerem smo končali *)
       explore_state state'
 
+      
 and explore_state (state : state) =
   (* pri raziskovanju najprej pogledamo, ali lahko trenutno stanje razvejimo *)
   match branch_state state with
