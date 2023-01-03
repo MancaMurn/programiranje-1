@@ -67,7 +67,7 @@ let find_box (i, j) =
       if 0 <= i && i <= 2 && 6 <= j && j <= 8 then 2 else
         if 3 <= i && i <= 5 && 0 <= j && j <= 2 then 3 else
           if 3 <= i && i <= 5 && 3 <= j && j <= 5 then 4 else
-            if 3 <= i && i <= 5 && 6 <= j && j <= 7 then 5 else
+            if 3 <= i && i <= 5 && 6 <= j && j <= 8 then 5 else
               if 6 <= i && i <= 8 && 0 <= j && j <= 2 then 6 else
                 if 6 <= i && i <= 8 && 3 <= j && j <= 5 then 7 else 8
 
