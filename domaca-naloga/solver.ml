@@ -38,7 +38,7 @@ let find_options grid (i, j) =
                   then find_options_aux (i, j) row column box (n-1) acc else
                     find_options_aux (i, j) row column box (n-1) (n :: acc)
         in
-        find_options_aux (i, j) r c b 8 [] 
+        find_options_aux (i, j) r c b 9 [] 
 
 
 let make_avalible_list grid =
@@ -75,43 +75,30 @@ let fill_cell grid (i, j) n =
   grid.(i).(j) <- Some n 
 
 let return_filled_grid grid (i, j) n =
-  fill_cell grid (i, j) n;
-  Model.copy_grid grid
+  let new_grid = Model.copy_grid grid in 
+    fill_cell new_grid (i, j) n;
+    new_grid
 
 
 let return_filled_state state (i, j) n =
-  fill_cell state.current_grid (i, j) n; 
-  {problem = state.problem; current_grid = state.current_grid; options = make_avalible_list state.current_grid}
-
-
-(* let remove_from_avaliable_list available_list (i, j) =
-  let rec remove_aux available_list (i, j) acc =
-  match available_list with
-  | [] -> acc
-  | available :: rest -> if available.loc = (i, j) then acc else remove_aux rest (i, j) (available :: acc) 
-  in
-  remove_aux available_list (i, j) [] *)
+  let new_grid = return_filled_grid state.current_grid (i, j) n in  
+  {problem = state.problem; current_grid = new_grid; options = make_avalible_list new_grid}
 
 
 (*funkcija, ki bo zapolnila vse celice, kjer imamo že na začetku samo eno možnost.*)
-let simple_cells grid available_list = 
-  let cells = find_all_n_options 1 available_list in 
-    let rec fill grid cells = 
-      match cells with
-      | [] -> grid
-      | {loc; possible} :: rest -> match possible with
-          | [] -> fill grid rest
-          (*xs = [], saj smo našli simple_cells, ki imajo samo eno možnost zapolitve.*)
-          | x :: xs -> fill  (return_filled_grid grid loc x)  rest 
-    in 
-    fill grid cells
+let simple_cells state =
+  find_all_n_options 1 state.options
+
+let rec fill_simple_cells state =
+  match simple_cells state with
+  | [] -> state
+  | x :: xs -> match x.possible with
+    | y :: [] -> let new_state = return_filled_state state x.loc y in 
+      fill_simple_cells new_state
+      (* y.possible mora biti seznam dolžine 1. *)
+    | [] -> failwith "Prišlo je do napake."
+    | y :: ys -> failwith "Prišlo je do napake." 
       
-
-let fill_simple_cells (state : state) : state = 
-  let new_grid = simple_cells state.current_grid state.options in 
-    let new_options = make_avalible_list new_grid in 
-      {problem = state.problem; current_grid = new_grid; options = new_options}
-
 
 (* TODO: Pripravite funkcijo, ki v trenutnem stanju poišče hipotezo, glede katere
      se je treba odločiti. Če ta obstaja, stanje razveji na dve stanji:
@@ -124,7 +111,7 @@ let branch_state (state : state) : (state * state) option =
     let element = Option.get available in 
   match element.possible with
   (* xs = [], saj smo zgoraj našli celico, ki ji pripada seznam dolžine dva.*)
-  | x :: y :: xs -> 
+  | x :: y :: [] -> 
     let st_1 = return_filled_state state element.loc x 
     in
       let st_2 = return_filled_state state element.loc y
