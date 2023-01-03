@@ -59,8 +59,8 @@ let initialize_state (problem : Model.problem) : state =
 
 let rec find_first_n_options n available_list =
   match available_list with
-  | [] -> failwith "No cell has that many options."
-  | available :: xs -> if (List.length available.possible ) = n then available else
+  | [] -> None
+  | available :: xs -> if (List.length available.possible ) = n then Some available else
     find_first_n_options n xs 
 
 let find_all_n_options n available_list =
@@ -75,33 +75,43 @@ let fill_cell grid (i, j) n =
   grid.(i).(j) <- Some n 
 
 let return_filled_grid grid (i, j) n =
-  fill_cell grid (i, j) n; 
+  fill_cell grid (i, j) n;
   Model.copy_grid grid
 
 
-let remove_from_avaliable_list available_list (i, j) =
+let return_filled_state state (i, j) n =
+  fill_cell state.current_grid (i, j) n; 
+  {problem = state.problem; current_grid = state.current_grid; options = make_avalible_list state.current_grid}
+
+
+(* let remove_from_avaliable_list available_list (i, j) =
   let rec remove_aux available_list (i, j) acc =
   match available_list with
   | [] -> acc
   | available :: rest -> if available.loc = (i, j) then acc else remove_aux rest (i, j) (available :: acc) 
   in
-  remove_aux available_list (i, j) []
+  remove_aux available_list (i, j) [] *)
 
 
 (*funkcija, ki bo zapolnila vse celice, kjer imamo že na začetku samo eno možnost.*)
-let fill_simple_cells (state : state) : state = 
-  let sipmle_cells = find_all_n_options 1 state.options in 
-    let rec fill state sipmle_cells = 
-      match sipmle_cells with
-      | [] -> {problem = state.problem; current_grid = state.current_grid; options = state.options }
+let simple_cells grid available_list = 
+  let cells = find_all_n_options 1 available_list in 
+    let rec fill grid cells = 
+      match cells with
+      | [] -> grid
       | {loc; possible} :: rest -> match possible with
-          | [] -> fill state rest
-          | x :: xs -> fill {problem = state.problem; 
-                            current_grid = (return_filled_grid state.current_grid loc x); 
-                            options = remove_from_avaliable_list state.options loc } 
-                            rest 
+          | [] -> fill grid rest
+          (*xs = [], saj smo našli simple_cells, ki imajo samo eno možnost zapolitve.*)
+          | x :: xs -> fill  (return_filled_grid grid loc x)  rest 
     in 
-    fill state sipmle_cells  
+    fill grid cells
+      
+
+let fill_simple_cells (state : state) : state = 
+  let new_grid = simple_cells state.current_grid state.options in 
+    let new_options = make_avalible_list new_grid in 
+      {problem = state.problem; current_grid = new_grid; options = new_options}
+
 
 (* TODO: Pripravite funkcijo, ki v trenutnem stanju poišče hipotezo, glede katere
      se je treba odločiti. Če ta obstaja, stanje razveji na dve stanji:
@@ -110,16 +120,14 @@ let fill_simple_cells (state : state) : state =
      za začetek ni treba zapravljati preveč časa, saj ne bo nujno prišla v poštev. *)
 let branch_state (state : state) : (state * state) option =
   let available = find_first_n_options 2 state.options in 
-  match available.possible with
+   if available = None then None else 
+    let element = Option.get available in 
+  match element.possible with
   (* xs = [], saj smo zgoraj našli celico, ki ji pripada seznam dolžine dva.*)
   | x :: y :: xs -> 
-    let st_1 = {problem = state.problem; 
-              current_grid = return_filled_grid state.current_grid available.loc x; 
-              options = remove_from_avaliable_list state.options available.loc} 
+    let st_1 = return_filled_state state element.loc x 
     in
-      let st_2 = {problem = state.problem; 
-                current_grid = return_filled_grid state.current_grid available.loc y; 
-                options = remove_from_avaliable_list state.options available.loc} 
+      let st_2 = return_filled_state state element.loc y
       in Some (st_1, st_2) 
   | [] -> None
   | x :: xs -> None
@@ -131,7 +139,8 @@ let branch_state (state : state) : (state * state) option =
 let rec solve_state (state : state) =
   (* uveljavimo trenutne omejitve in pogledamo, kam smo prišli *)
   (* TODO: na tej točki je stanje smiselno počistiti in zožiti možne rešitve *)
-  match validate_state state with
+  let filled_state = fill_simple_cells state in 
+  match validate_state filled_state with
   | Solved solution ->
       (* če smo našli rešitev, končamo *)
       Some solution
