@@ -28,3 +28,28 @@ piran = [
     [1, 2,  30,  -1, 0],
     [4, 3, -20,  -1, 5],
 ]
+
+
+
+def mozni_koraki(mreza, polje):
+    m = len(mreza) #stevilo vrstic
+    n = len(mreza[0]) #stevilo stolpcev
+    i = polje[0]
+    j = polje[1]
+    seznam_moznosti = []
+    if i >= m or i < 0 or j < 0 or j >= n:
+        raise Exception("Polje ni znotraj mreže!") 
+    elif i == m - 1 and j == n - 1:
+        return seznam_moznosti
+    elif i == m - 1:
+        k1 = mreza[i][j + 1]
+        seznam_moznosti += k1
+    # elif j == n - 1:
+    #     k2 = mreza[i + 1][j]
+    #     seznam_moznosti += k2
+    # else:
+    #     k1 = mreza[i][j + 1]
+    #     k2 = mreza[i + 1][j]
+    #     k3 = mreza[i + 1][j + 1]
+    #     seznam_moznosti += k1, k2, k3
+    return seznam_moznosti

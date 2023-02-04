@@ -48,12 +48,42 @@ let primer =
   spremenljivk v izrazu.
 [*----------------------------------------------------------------------------*)
 
+
+let rec poberi acc = function
+| Spremenljivka x -> x :: acc
+| Konstanta m -> acc
+| Operacija (i1, operator, i2) -> poberi acc i1 @ poberi acc i2 
+
+let rec vsebuje_sez a = function
+| [] -> false
+| x :: xs -> if x = a then true else vsebuje_sez a xs
+
+
+let rec pocisti = function
+| [] -> []
+|x :: xs -> if vsebuje_sez x xs then pocisti xs else [x] @ pocisti xs
+
+
+let rec prestej izraz = 
+  List.length (pocisti (poberi [] izraz))
+
 (* b *)
 (*----------------------------------------------------------------------------*]
 Napišite funkcijo `izlusci : 'a izraz -> (string * int) slovar`, ki sprejme izraz 
 in vrne slovar, ki pove, kolikokrat se posamezna spremenljivka pojavi v izrazu. 
 Vrstni red v slovarju ni pomemben.
 [*----------------------------------------------------------------------------*)
+
+let izlusci izraz = 
+  let seznam = poberi [] izraz in 
+  let slovar = prazen_slovar in 
+    let rec izlusci_aux slovar = function
+    | [] -> slovar
+    | x :: xs -> if vsebuje x slovar then izlusci_aux (dodaj (x, Option.get (najdi x slovar) + 1) slovar) xs else 
+      izlusci_aux(dodaj (x, 1) slovar) xs
+    in
+    izlusci_aux slovar seznam 
+
 
 (* c *)
 (*----------------------------------------------------------------------------*]
@@ -65,6 +95,19 @@ Vrstni red v slovarju ni pomemben.
     - : int option = Some (-4)
 [*----------------------------------------------------------------------------*)
 
+let rec izracunaj slovar = function
+| Spremenljivka x -> najdi x slovar 
+| Konstanta a -> Some a
+| Operacija (i1, operator, i2) -> match operator with
+      | Plus -> Some (Option.get (izracunaj slovar i1) + Option.get (izracunaj slovar i2))
+      | Minus -> Some (Option.get (izracunaj slovar i1) - Option.get (izracunaj slovar i2))
+      | Krat -> Some (Option.get (izracunaj slovar i1) * Option.get (izracunaj slovar i2))
+      | Deljeno -> let delitelj = izracunaj slovar i2 in 
+        if delitelj = Some 0 then None else 
+          Some (Option.get (izracunaj slovar i1) / Option.get (delitelj))
+
+
+
 (* c *)
 (*----------------------------------------------------------------------------*]
   Ocenite časovno zahtevnost funkcije `izracunaj` v odvisnosti od velikosti 
@@ -72,3 +115,5 @@ Vrstni red v slovarju ni pomemben.
   spremenljivk `m`.
   Kako se časovna zahtevnost spremeni, če bi za slovar uporabili uravnoteženo iskalno drevo?
 [*----------------------------------------------------------------------------*)
+
+
