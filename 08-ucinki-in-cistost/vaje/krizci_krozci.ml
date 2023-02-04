@@ -32,12 +32,6 @@ type player = X | O
 
  Namig: Vaša koda bo lepša, če definirate še dodatne tipe.
 [*----------------------------------------------------------------------------*)
-type value = 
-| Value of player 
-| Nil 
-
-type grid = Grid of (value list) list 
-
 
 type field = player option
 type row = field * field * field
