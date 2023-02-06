@@ -1,4 +1,4 @@
-<<<<<<< HEAD:13-memoizacija/vaje/dinamicno_in_memo.py
+
 from functools import lru_cache
 # =============================================================================
 # Najdaljše naraščajoče podzaporedje
@@ -11,6 +11,58 @@ from functools import lru_cache
 # Primer: v seznamu `[2, 3, 6, 8, 4, 4, 6, 7, 12, 8, 9]` kot rezultat vrne
 # podzaporedje `[2, 3, 4, 4, 6, 7, 8, 9]`.
 # -----------------------------------------------------------------------------
+sez = [2, 3, 6, 8, 4, 4, 6, 7, 12, 8, 9]
+
+def je_zaporedje(seznam):
+    if seznam == []:
+        return True
+    else:
+        for i in range(1, len(seznam)):
+            if seznam[i-1] > seznam[i]:
+                return False
+        return True
+
+def zaporedja_z_zacetkom(k, seznam):
+    
+
+
+def izloci_zaporedje(k, seznam):
+    if k >= len(seznam) or k < 0:
+        return "i out of range"
+    else:
+        n = len(seznam)
+        podzaporedje = []
+        zadnji = seznam[k]
+        for i in range(k, n):
+            if zadnji <= seznam[i]:
+                podzaporedje.append(seznam[i])
+                zadnji = seznam[i]
+        return podzaporedje
+
+def vsa_zaporedja(seznam):
+    if seznam == []:
+        return []
+    else:
+        n = len(seznam)
+        podzaporedja = []
+        for i in range(0, n):
+            podzaporedja.append(izloci_zaporedje(i, seznam))
+        return podzaporedja
+
+
+
+
+def najdaljse(seznam):
+    podzaporedja = vsa_zaporedja(seznam)
+    najdaljsi = 0
+    if podzaporedja == []:
+        return []
+    else:
+        for i in range(len(podzaporedja)):
+            if len(podzaporedja[najdaljsi]) < len(podzaporedja[i]):
+                najdaljsi = podzaporedja[i]
+        return podzaporedja[najdaljsi]
+
 
 # -----------------------------------------------------------------------------
 # Rešitev sedaj popravite tako, da funkcija `vsa_najdaljsa` vrne seznam vseh
@@ -67,14 +119,14 @@ from functools import lru_cache
 #     [0, 1, 1, 0, 1, 1, 0, 1, 1]
 # =============================================================================
 
-@lru_cache(maxsize=None) 
-def nageljni_stevilo(n, m, l): 
-    if m <= 0: 
-        return 1
-    elif n < l: 
-        return 0 
-    else: 
-        return nageljni_stevilo(n-1, m, l) + nageljni_stevilo(n-l-1, m-1, l)
+# @lru_cache(maxsize=None) 
+# def nageljni_stevilo(n, m, l): 
+#     if m <= 0: 
+#         return 1
+#     elif n < l: 
+#         return 0 
+#     else: 
+#         return nageljni_stevilo(n-1, m, l) + nageljni_stevilo(n-l-1, m-1, l)
 
 
 
@@ -159,31 +211,31 @@ def nageljni_stevilo(n, m, l):
 # medtem ko iz vrste 5 in stolpca 0 ne more pobegniti.
 # =============================================================================
 
-def pobeg(soba, vrsta, stolpec, koraki):
-    max_vrsta = len(soba)
-    max_stolpec = len(soba[0])
+# def pobeg(soba, vrsta, stolpec, koraki):
+#     max_vrsta = len(soba)
+#     max_stolpec = len(soba[0])
 
-    @lru_cache(maxsize=None)
-    def pobegni(vrsta, stolpec, koraki):
-        # Padli smo iz sobe
-        if not (0 <= vrsta < max_vrsta) or not (0 <= stolpec < max_stolpec):
-            return False
-        # Pobeg uspesen! All hail our robot overlords!!!
-        elif soba[vrsta][stolpec] == 1:
-            return True
-        # Lahko bezimo naprej
-        elif soba[vrsta][stolpec] == 0 and koraki > 0:
-            return any(
-                [pobegni(vrsta + 1, stolpec, koraki-1),
-                 pobegni(vrsta - 1, stolpec, koraki-1),
-                 pobegni(vrsta, stolpec + 1, koraki-1),
-                 pobegni(vrsta, stolpec - 1, koraki-1)])
-        # Pristali smo na oviri ali pa nam je zmanjkalo korakov
-        else:
-            return False
-    return pobegni(vrsta, stolpec, koraki)
-=======
-from functools import cache
+#     @lru_cache(maxsize=None)
+#     def pobegni(vrsta, stolpec, koraki):
+#         # Padli smo iz sobe
+#         if not (0 <= vrsta < max_vrsta) or not (0 <= stolpec < max_stolpec):
+#             return False
+#         # Pobeg uspesen! All hail our robot overlords!!!
+#         elif soba[vrsta][stolpec] == 1:
+#             return True
+#         # Lahko bezimo naprej
+#         elif soba[vrsta][stolpec] == 0 and koraki > 0:
+#             return any(
+#                 [pobegni(vrsta + 1, stolpec, koraki-1),
+#                  pobegni(vrsta - 1, stolpec, koraki-1),
+#                  pobegni(vrsta, stolpec + 1, koraki-1),
+#                  pobegni(vrsta, stolpec - 1, koraki-1)])
+#         # Pristali smo na oviri ali pa nam je zmanjkalo korakov
+#         else:
+#             return False
+#     return pobegni(vrsta, stolpec, koraki)
+# =============================================================================
+#from functools import cache
 # =============================================================================
 # Najdaljše naraščajoče podzaporedje
 # =============================================================================
@@ -333,4 +385,3 @@ from functools import cache
 # 
 # medtem ko iz vrste 5 in stolpca 0 ne more pobegniti.
 # =============================================================================
->>>>>>> 4eb888378a57856789efe9327a2a32aaf9845d90:13-memoizacija-v-pythonu/vaje/dinamicno_in_memo.py

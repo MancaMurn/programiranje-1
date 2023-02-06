@@ -26,8 +26,24 @@
 #     >>> a
 #     [10, 0, 2, 4, 11, 5, 17, 15, 18]
 ###############################################################################
+a = [10, 4, 5, 15, 11, 2, 17, 0, 18] 
 
+def pivot(a, start, end):
+    pivot = a[start]
+    a1 = a[:start]
+    a2 = a[(start + 1): (end + 1)]
+    a3 = a[(end + 1):]
+    manjsi = []
+    vecji = []
+    for i in range(len(a2)):
+        element = a2[i]
+        if element <= pivot:
+            manjsi.append(element)
+        else:
+            vecji.append(element)
+    return a1 + manjsi + [pivot] + vecji + a3
 
+rezultat = pivot(a, 1, 7)
 ###############################################################################
 # V tabeli želimo poiskati vrednost k-tega elementa po velikosti.
 #
@@ -42,8 +58,11 @@
 # po velikosti. Funkcija sme spremeniti tabelo [a]. Cilj naloge je, da jo
 # rešite brez da v celoti uredite tabelo [a].
 ###############################################################################
+def kth_element(a, k):
+    
 
 
+    
 ###############################################################################
 # Tabelo a želimo urediti z algoritmom hitrega urejanja (quicksort).
 #
